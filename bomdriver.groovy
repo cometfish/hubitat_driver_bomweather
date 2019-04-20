@@ -17,8 +17,8 @@ metadata {
 		attribute "apparent_temperature", "number"
 		attribute "dew_point", "number"
 		attribute "humidity", "number"
-		attribute "wind_dir", "string"
-		attribute "wind_speed", "number"
+		attribute "windDirection", "number"
+		attribute "windSpeed", "number"
 		
 		command "poll"
 		command "refresh"
@@ -78,8 +78,39 @@ def refresh() {
 				sendEvent(name: "apparent_temperature", value: resp.data.observations.data[0].apparent_t, unit: "°C", isStateChange: true)
 				sendEvent(name: "dew_point", value: resp.data.observations.data[0].dewpt, unit: "°C", isStateChange: true)
 				sendEvent(name: "humidity", value: resp.data.observations.data[0].rel_hum, unit: "%", isStateChange: true)
-				sendEvent(name: "wind_dir", value: resp.data.observations.data[0].wind_dir, isStateChange: true)
-				sendEvent(name: "wind_speed", value: resp.data.observations.data[0].wind_spd_kmh,unit: "kmh", isStateChange: true)
+				deg = 0
+				if (resp.data.observations.data[0].wind_dir=="NNE")
+				    deg = 22.5;
+				else if (resp.data.observations.data[0].wind_dir=="NE")
+				    deg = 45;
+				else if (resp.data.observations.data[0].wind_dir=="ENE")
+				    deg = 67.5;
+				else if (resp.data.observations.data[0].wind_dir=="E")
+				    deg = 90;
+				else if (resp.data.observations.data[0].wind_dir=="ESE")
+				    deg = 112.5;
+				else if (resp.data.observations.data[0].wind_dir=="SE")
+				    deg = 135;
+				else if (resp.data.observations.data[0].wind_dir=="SSE")
+				    deg = 157.5;
+				else if (resp.data.observations.data[0].wind_dir=="S")
+				    deg = 180;
+				else if (resp.data.observations.data[0].wind_dir=="SSW")
+				    deg = 202.5;
+				else if (resp.data.observations.data[0].wind_dir=="SW")
+				    deg = 225;
+				else if (resp.data.observations.data[0].wind_dir=="WSW")
+				    deg = 247.5;
+				else if (resp.data.observations.data[0].wind_dir=="W")
+				    deg = 270;
+				else if (resp.data.observations.data[0].wind_dir=="WNW")
+				    deg = 292.5;
+				else if (resp.data.observations.data[0].wind_dir=="NW")
+				    deg = 315;
+				else if (resp.data.observations.data[0].wind_dir=="NNW")
+				    deg = 337.5;
+				sendEvent(name: "windDirection", value: deg, unit:"°", isStateChange: true)
+				sendEvent(name: "windSpeed", value: resp.data.observations.data[0].wind_spd_kmh,unit: "kmh", isStateChange: true)
             } else {
 			    if (logEnable)
                     log.debug "Error: ${resp}"
