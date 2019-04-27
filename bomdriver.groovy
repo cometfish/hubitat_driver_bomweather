@@ -275,9 +275,11 @@ private readXMLData() {
 	state.ftpstatus = "parsingxml"
 	if (logEnable) log.debug("status: ${state.ftpstatus}")
 	fcdata = parseXML(file.toString())
-	if (logEnable) log.debug("parsed")
 	state.filesize = 0
 	file = new StringBuilder()
+	state.ftpstatus = "idle"
+	if (logEnable) log.debug("status: ${state.ftpstatus}")
+	
 	date = Date.parse("yyyy-MM-dd'T'HH:mm:ssX", fcdata.amoc.'issue-time-utc'.text())
     sendEvent(name: "forecastlastupdate", value: date, isStateChange: true)
 	date = Date.parse("yyyy-MM-dd'T'HH:mm:ssX", fcdata.amoc.'next-routine-issue-time-utc'.text())
@@ -287,7 +289,8 @@ private readXMLData() {
 	today = local.'forecast-period'.find{it.@index == "0"}
 				
 	el = today.'**'.find{it.@type == 'precis'}
-	sendEvent(name: "weather", value: el.text(),  isStateChange: true)
+	w = el.text()
+	sendEvent(name: "weather", value: w,  isStateChange: true)
 	el = today.'**'.find{it.@type == 'probability_of_precipitation'}
 	sendEvent(name: "rainProbability", value: el.text().substring(0,el.text().length()-1).toInteger(), unit: "%", isStateChange: true)
 	el = today.element.find{it.@type == 'precipitation_range'}
@@ -299,31 +302,29 @@ private readXMLData() {
 	el = today.element.find{it.@type == 'forecast_icon_code'}
 	iconCodeStr = el.text()
 	sendEvent(name: "iconCode", value: iconCodeStr.toInteger(), isStateChange: true)
-	sendEvent(name: "iconCode", value: "1", isStateChange: true)
 	icontype = "day"
 	nowdate = new Date()
 	if (nowdate<location.sunrise || nowdate>=location.sunset)
 		icontype = "night"
-	sendEvent(name: "weatherIcon", value: "https://raw.githubusercontent.com/cometfish/hubitat_driver_bomweather/master/images/monochrome/${iconCodeStr}${icontype}.png", isStateChange: true)
+	wIcon = "https://raw.githubusercontent.com/cometfish/hubitat_driver_bomweather/master/images/monochrome/${iconCodeStr}${icontype}.png"
+	sendEvent(name: "weatherIcon", value: wIcon, isStateChange: true)
 	sendEvent(name: "weatherIconDay", value: "https://raw.githubusercontent.com/cometfish/hubitat_driver_bomweather/master/images/monochrome/${iconCodeStr}day.png", isStateChange: true)
 	sendEvent(name: "weatherIconNight", value: "https://raw.githubusercontent.com/cometfish/hubitat_driver_bomweather/master/images/monochrome/${iconCodeStr}night.png", isStateChange: true)
-    updateTile()
-	state.ftpstatus = "idle"
-	if (logEnable) log.debug "done"
+	sendEvent(name: "tile", value: "<br /><img src=\"" + wIcon + "\" /><br />" + w, isStateChange: true)
 }
 
 def sunsetHandler() {
 	sendEvent(name: "weatherIcon", value: device.currentValue("weatherIconNight"), isStateChange: true)
-    updateTile()
+	sendEvent(name: "tile", value: "<img src=\"" + device.currentValue("weatherIconNight") + "\" /><br />" + device.currentValue("weather", true), isStateChange: true)
 }
 
 def sunriseHandler() {
 	sendEvent(name: "weatherIcon", value: device.currentValue("weatherIconDay"), isStateChange: true)
-    updateTile()
+	sendEvent(name: "tile", value: "<img src=\"" + device.currentValue("weatherIconDay") + "\" /><br />" + device.currentValue("weather", true), isStateChange: true)
 }
 
 def updateTile() {
-	sendEvent(name: "tile", value: "<br /><img src=\"" + device.currentValue("weatherIcon", true) + "\" /><br />" + device.currentValue("weather"), isStateChange: true)
+	sendEvent(name: "tile", value: "<img src=\"" + device.currentValue("weatherIcon", true) + "\" /><br />" + device.currentValue("weather", true), isStateChange: true)
 }
 
 def sendMsg(msg) {
