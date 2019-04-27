@@ -1,8 +1,8 @@
 # BoM Weather Hubitat driver
 
-Hubitat Driver for Australian weather data from your local weather station at the Bureau of Meteorology (BOM).
+Hubitat Driver for Australian weather data (observations and forecasts) from your local weather station at the Bureau of Meteorology (BOM).
 
-1. Add `bomdriver.groovy` to your Hubitat as a new Driver (under `Drivers Code`)
+1. Add `bomdriver.groovy` and `bomdriver_ftpchild.groovy` to your Hubitat as two new Drivers (under `Drivers Code`)
 2. Add a new device for weather to your Hubitat, set device Type to your User driver of 'BoM Weather'
 3. Configure your IDV and WMO numbers:
     1. Visit [BoM Observations](http://www.bom.gov.au/catalogue/data-feeds.shtml#obs-ind) and find your closest weather station
