@@ -27,8 +27,8 @@ metadata {
 
 preferences {
     section("URIs") {
-		input "idv", "text", title: "BoM IDV number (eg. IDV60900)", required: true
-        input "wmo", "text", title: "BoM WMO number for your local weather station (eg. 12345)", required: true
+		input "idv", "text", title: "Observation IDV number (eg. IDV60900)", required: true
+        input "wmo", "text", title: "Observation WMO number for your local weather station (eg. 12345)", required: true
 		input "autoPoll", "bool", required: true, title: "Enable Auto Poll", defaultValue: false
         input "pollInterval", "text", title: "Poll interval (which minutes of the hour to run on, eg. 5,35)", required: true, defaultValue: "5,35"
 		input name: "logEnable", type: "bool", title: "Enable debug logging", defaultValue: true
@@ -71,8 +71,8 @@ def refresh() {
 
         httpGet(["uri":url]) { resp ->
 		    if (resp.success) {
-			    date = Date.parse("yyyyMMddhhmmss", resp.data.observations.data[0].local_date_time_full)
-                sendEvent(name: "lastupdate", value: date, isStateChange: true)
+				date = Date.parse("yyyyMMddHHmmssX", resp.data.observations.data[0].aifstime_utc+"Z")
+				sendEvent(name: "lastupdate", value: date, isStateChange: true)
 
 				sendEvent(name: "temperature", value: resp.data.observations.data[0].air_temp, unit: "°C", isStateChange: true)
 				sendEvent(name: "apparent_temperature", value: resp.data.observations.data[0].apparent_t, unit: "°C", isStateChange: true)
@@ -112,8 +112,7 @@ def refresh() {
 				sendEvent(name: "windDirection", value: deg, unit:"°", isStateChange: true)
 				sendEvent(name: "windSpeed", value: resp.data.observations.data[0].wind_spd_kmh,unit: "kmh", isStateChange: true)
             } else {
-			    if (logEnable)
-                    log.debug "Error: ${resp}"
+                log.debug "Error: ${resp}"
 			}
         }
     } catch (Exception e) {
