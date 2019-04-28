@@ -2,8 +2,6 @@
  * BoMWeather driver
  *
  * Gets current Australian weather info (observations and forecasts) from the Bureau of Meteorology (BOM)
- *
- * Polling function modified from https://github.com/Scottma61/Hubitat/blob/master/Weather-Display%20WU%20Driver
  * 
  */
 metadata {
@@ -25,8 +23,6 @@ metadata {
 		attribute "area", "string"
 		attribute "iconCode", "number"
 		attribute "weatherIcon", "string"
-		attribute "weatherIconDay", "string"
-		attribute "weatherIconNight", "string"
 		attribute "forecastlastupdate", "date"
 		attribute "forecastnextupdate", "date"
 		attribute "weather", "string"
@@ -39,9 +35,7 @@ metadata {
 		command "poll"
 		command "refresh"
 		command "clearForecastNextUpdate"
-		command "recreateChildDevice"
 		command "updateTile"
-		command "sub"
     }
 }
 
@@ -64,7 +58,6 @@ import groovy.transform.Field
 def installed() {
 	state.ftpstatus = "idle"
 	createChildDevice()
-	sub()
 }
 
 def recreateChildDevice() {
@@ -85,12 +78,6 @@ private void createChildDevice() {
     
 	addChildDevice("community", "BoM Weather Forecasts FTP component", "$device.deviceNetworkId-ftp", [name: "BoMFTPComponent", label: "$device.displayName FTP", isComponent: true])
 }
-
-def sub() {
-	subscribe(location, "sunset", sunsetHandler)
-	subscribe(location, "sunrise", sunriseHandler)
-}
-
 
 def logsOff() {
     log.warn "debug logging disabled..."
@@ -131,6 +118,20 @@ def refresh() {
 		} else {
 			if (logEnable)
 				log.info "Forecast data still current, will not refresh until: "+nextupdate
+			
+			//check if we need to switch tile
+			icontype = "day"
+	        nowdate = new Date()
+	        if (nowdate<location.sunrise || nowdate>=location.sunset)
+		        icontype = "night"
+			if (state.icontype != icontype) {
+				state.icontype = icontype
+				iconCodeStr = device.currentValue("iconCode").toString()
+				w = device.currentValue("weather")
+			    wIcon = "https://raw.githubusercontent.com/cometfish/hubitat_driver_bomweather/master/images/monochrome/${iconCodeStr}${icontype}.png"
+	sendEvent(name: "weatherIcon", value: wIcon, isStateChange: true)
+	sendEvent(name: "tile", value: "<br /><img src=\"" + wIcon + "\" /><br />" + w, isStateChange: true)
+			}
 		}
 	} catch (Exception e) {
 		log.warn "Refresh call forecasts failed: ${e.message}"
@@ -306,21 +307,10 @@ private readXMLData() {
 	nowdate = new Date()
 	if (nowdate<location.sunrise || nowdate>=location.sunset)
 		icontype = "night"
+	state.icontype = icontype
 	wIcon = "https://raw.githubusercontent.com/cometfish/hubitat_driver_bomweather/master/images/monochrome/${iconCodeStr}${icontype}.png"
 	sendEvent(name: "weatherIcon", value: wIcon, isStateChange: true)
-	sendEvent(name: "weatherIconDay", value: "https://raw.githubusercontent.com/cometfish/hubitat_driver_bomweather/master/images/monochrome/${iconCodeStr}day.png", isStateChange: true)
-	sendEvent(name: "weatherIconNight", value: "https://raw.githubusercontent.com/cometfish/hubitat_driver_bomweather/master/images/monochrome/${iconCodeStr}night.png", isStateChange: true)
 	sendEvent(name: "tile", value: "<br /><img src=\"" + wIcon + "\" /><br />" + w, isStateChange: true)
-}
-
-def sunsetHandler() {
-	sendEvent(name: "weatherIcon", value: device.currentValue("weatherIconNight"), isStateChange: true)
-	sendEvent(name: "tile", value: "<img src=\"" + device.currentValue("weatherIconNight") + "\" /><br />" + device.currentValue("weather", true), isStateChange: true)
-}
-
-def sunriseHandler() {
-	sendEvent(name: "weatherIcon", value: device.currentValue("weatherIconDay"), isStateChange: true)
-	sendEvent(name: "tile", value: "<img src=\"" + device.currentValue("weatherIconDay") + "\" /><br />" + device.currentValue("weather", true), isStateChange: true)
 }
 
 def updateTile() {
