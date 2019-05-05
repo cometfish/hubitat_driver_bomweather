@@ -135,13 +135,22 @@ def refresh() {
 			if (state.icontype != icontype) {
 				state.icontype = icontype
 				iconCodeStr = device.currentValue("iconCode").toString()
-				w = device.currentValue("weather")
+				
 			    iconurl = settings.iconcustomurl
                 if (iconurl==null || iconurl=='')
                     iconurl = "https://raw.githubusercontent.com/cometfish/hubitat_driver_bomweather/master/images/monochrome/"
                 wIcon = "${iconurl}${iconCodeStr}${icontype}.png"
                 sendEvent(name: "weatherIcon", value: wIcon, isStateChange: true)
-                sendEvent(name: "tile", value: "<br /><img src=\"" + wIcon + "\" /><br />" + w, isStateChange: true)
+	
+				vals = [:]
+                vals.weatherIcon = device.currentValue("weatherIcon")
+                vals.weather = device.currentValue("weather")
+                vals.forecastHigh=device.currentValue("forecastHigh")
+                vals.temperature=device.currentValue("temperature")
+                vals.apparent_temperature=device.currentValue("apparent_temperature")
+                vals.windDirection = device.currentValue("windDirection")
+                vals.windSpeed = device.currentValue("windSpeed")
+				updateTileWithVals(vals) 
 			}
 		}
 	} catch (Exception e) {
@@ -195,6 +204,16 @@ def refresh() {
 				    deg = 337.5;
 				sendEvent(name: "windDirection", value: deg, unit:"°", isStateChange: true)
 				sendEvent(name: "windSpeed", value: resp.data.observations.data[0].wind_spd_kmh,unit: "kmh", isStateChange: true)
+				vals = [:]
+                vals.weatherIcon = device.currentValue("weatherIcon")
+                vals.weather = device.currentValue("weather")
+                vals.forecastHigh=device.currentValue("forecastHigh")
+                vals.temperature=resp.data.observations.data[0].air_temp
+                vals.apparent_temperature=resp.data.observations.data[0].apparent_t
+                vals.windDirection = deg
+                vals.windSpeed = resp.data.observations.data[0].wind_spd_kmh
+				updateTileWithVals(vals)
+				
             } else {
                 log.debug "Error: ${resp}"
 			}
@@ -310,7 +329,9 @@ private readXMLData() {
 	el = today.element.find{it.@type == 'air_temperature_minimum'}
 	sendEvent(name: "forecastLow", value: el.text(), unit: "°C", isStateChange: true)
 	el = today.element.find{it.@type == 'air_temperature_maximum'}
-	sendEvent(name: "forecastHigh", value: el.text(), unit: "°C", isStateChange: true)
+	fhigh=el.text()
+	sendEvent(name: "forecastHigh", value: fhigh, unit: "°C", isStateChange: true)
+	
 	el = today.element.find{it.@type == 'forecast_icon_code'}
 	iconCodeStr = el.text()
 	sendEvent(name: "iconCode", value: iconCodeStr.toInteger(), isStateChange: true)
@@ -325,6 +346,16 @@ private readXMLData() {
 	wIcon = "${iconurl}${iconCodeStr}${icontype}.png"
 	sendEvent(name: "weatherIcon", value: wIcon, isStateChange: true)
 	sendEvent(name: "tile", value: "<br /><img src=\"" + wIcon + "\" /><br />" + w, isStateChange: true)
+	
+	vals = [:]
+	vals.weatherIcon = wIcon
+	vals.weather = w
+	vals.forecastHigh=fHigh
+	vals.temperature=device.currentValue("temperature")
+	vals.apparent_temperature=device.currentValue("apparent_temperature")
+	vals.windDirection = device.currentValue("windDirection")
+	vals.windSpeed = device.currentValue("windSpeed")
+	updateTileWithVals(vals) 
 }
 
 def resetFTPStatus() {
@@ -335,7 +366,40 @@ def resetFTPStatus() {
 }
 
 def updateTile() {
-	sendEvent(name: "tile", value: "<img src=\"" + device.currentValue("weatherIcon", true) + "\" /><br />" + device.currentValue("weather", true), isStateChange: true)
+	vals = [:]
+	vals.weatherIcon = device.currentValue("weatherIcon")
+	vals.weather = device.currentValue("weather")
+	vals.forecastHigh=device.currentValue("forecastHigh")
+	vals.temperature=device.currentValue("temperature")
+	vals.apparent_temperature=device.currentValue("apparent_temperature")
+	vals.windDirection = device.currentValue("windDirection")
+	vals.windSpeed = device.currentValue("windSpeed")
+	
+	updateTileWithVals(vals)
+	
+}
+def updateTileWithVals(vals) {
+	sendEvent(name: "tile", value: """
+<style>.wfc {display:inline-block;padding:0 8px;font-size:12px;}
+span.v {font-size:20px;}
+</style>
+<div id="bomw">
+<div class="wfc today">
+Today<br>
+<img src="${vals.weatherIcon}" /><br>
+${vals.weather}<br>
+Max: ${vals.forecastHigh}&deg;C
+</div>
+<br>
+<div class="wfc"><span class="v">${vals.temperature}&deg;C</span><br>
+Currently
+</div><div class="wfc"><span class="v">${vals.apparent_temperature}&deg;C</span><br>
+Feels like
+</div><div class="wfc">
+<span class="v"><div style="transform:rotate(${vals.windDirection}deg);display:inline-block;font-weight:bold;">&uarr;</div> ${vals.windSpeed}km/h</span><br>
+Wind
+</div>
+</div>""", isStateChange: true)
 }
 
 def sendMsg(msg) {
