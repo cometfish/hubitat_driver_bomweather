@@ -6,6 +6,8 @@
  */
 metadata {
     definition (name: "BoM Weather Forecasts FTP component", namespace: "community", author: "cometfish") {
+        capability "Telnet"
+	
         attribute "ip", "string"
 		attribute "port", "number"
 		attribute "logEnable", "bool"

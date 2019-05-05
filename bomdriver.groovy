@@ -9,6 +9,7 @@ metadata {
 	    capability "Sensor"
         capability "TemperatureMeasurement"
 		capability "Relative Humidity Measurement"
+		capability "Telnet"
 		
 		//observations
 		attribute "temperature", "number"
