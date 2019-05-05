@@ -36,6 +36,7 @@ metadata {
 		command "poll"
 		command "refresh"
 		command "clearForecastNextUpdate"
+        command "resetFTPStatus"
 		command "updateTile"
     }
 }
@@ -115,7 +116,10 @@ def refresh() {
 		nextupdate = Date.parseToStringDate(device.currentValue("forecastnextupdate"))
 
 		if (nextupdate == null || nextupdate<(new Date())) {
-			telnetConnect("ftp.bom.gov.au", 21, "", "")
+            if (state.ftpstatus!="idle")
+                log.error "Past forecast update time, but FTP is still in use."
+            else
+                telnetConnect("ftp.bom.gov.au", 21, "", "")
 		} else {
 			if (logEnable)
 				log.info "Forecast data still current, will not refresh until: "+nextupdate
@@ -312,6 +316,13 @@ private readXMLData() {
 	wIcon = "https://raw.githubusercontent.com/cometfish/hubitat_driver_bomweather/master/images/monochrome/${iconCodeStr}${icontype}.png"
 	sendEvent(name: "weatherIcon", value: wIcon, isStateChange: true)
 	sendEvent(name: "tile", value: "<br /><img src=\"" + wIcon + "\" /><br />" + w, isStateChange: true)
+}
+
+def resetFTPStatus() {
+    telnetClose()
+    state.filesize = 0
+	file = new StringBuilder()
+    state.ftpstatus = "idle"
 }
 
 def updateTile() {
