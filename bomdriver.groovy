@@ -136,9 +136,12 @@ def refresh() {
 				state.icontype = icontype
 				iconCodeStr = device.currentValue("iconCode").toString()
 				w = device.currentValue("weather")
-			    wIcon = "https://raw.githubusercontent.com/cometfish/hubitat_driver_bomweather/master/images/monochrome/${iconCodeStr}${icontype}.png"
-	sendEvent(name: "weatherIcon", value: wIcon, isStateChange: true)
-	sendEvent(name: "tile", value: "<br /><img src=\"" + wIcon + "\" /><br />" + w, isStateChange: true)
+			    iconurl = settings.iconcustomurl
+                if (iconurl==null || iconurl=='')
+                    iconurl = "https://raw.githubusercontent.com/cometfish/hubitat_driver_bomweather/master/images/monochrome/"
+                wIcon = "${iconurl}${iconCodeStr}${icontype}.png"
+                sendEvent(name: "weatherIcon", value: wIcon, isStateChange: true)
+                sendEvent(name: "tile", value: "<br /><img src=\"" + wIcon + "\" /><br />" + w, isStateChange: true)
 			}
 		}
 	} catch (Exception e) {
