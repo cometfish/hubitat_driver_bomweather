@@ -45,8 +45,11 @@ preferences {
     section("URIs") {
 		input "idv", "text", title: "Observation IDV number (eg. IDV60901)", required: true
         input "wmo", "text", title: "Observation WMO number for your local weather station (eg. 95936)", required: true
+        
 		input "forecastidv", "text", title: "Forecast Precis IDV number (eg. IDV10753)", required: true
         input "aac", "text", title: "Forecast Precis AAC code for your local weather station (eg. VIC_PT042)", required: true
+        
+        input "iconcustomurl", "text", title: "Icon custom url (Leave blank for default. Include trailing slash)", required: false
 		
 		input "autoPoll", "bool", required: true, title: "Enable Auto Poll", defaultValue: false
         input "pollInterval", "text", title: "Poll interval (which minutes of the hour to run on, eg. 5,35)", required: true, defaultValue: "5,35"
@@ -313,7 +316,10 @@ private readXMLData() {
 	if (nowdate<location.sunrise || nowdate>=location.sunset)
 		icontype = "night"
 	state.icontype = icontype
-	wIcon = "https://raw.githubusercontent.com/cometfish/hubitat_driver_bomweather/master/images/monochrome/${iconCodeStr}${icontype}.png"
+    iconurl = settings.iconcustomurl
+    if (iconurl==null || iconurl=='')
+        iconurl = "https://raw.githubusercontent.com/cometfish/hubitat_driver_bomweather/master/images/monochrome/"
+	wIcon = "${iconurl}${iconCodeStr}${icontype}.png"
 	sendEvent(name: "weatherIcon", value: wIcon, isStateChange: true)
 	sendEvent(name: "tile", value: "<br /><img src=\"" + wIcon + "\" /><br />" + w, isStateChange: true)
 }
