@@ -98,7 +98,7 @@ def updated() {
 	    def pollIntervalCmd = (settings?.pollInterval)
         Random rand = new Random(now())
     	def randomSeconds = rand.nextInt(60)
-        def sched = "${randomSeconds} 0/${pollIntervalCmd} * * * ?"
+        def sched = "${randomSeconds} ${pollIntervalCmd} * * * ?"
         schedule("${sched}", "refresh")
     }
 }
