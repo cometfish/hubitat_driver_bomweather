@@ -59,6 +59,7 @@ preferences {
 
 import groovy.transform.Field
 @Field static StringBuilder file
+@Field static boolean ftpChildFailed = false;
 
 def installed() {
 	state.ftpstatus = "idle"
@@ -137,19 +138,19 @@ def refresh() {
 				iconCodeStr = device.currentValue("iconCode").toString()
 				
 			    iconurl = settings.iconcustomurl
-                if (iconurl==null || iconurl=='')
-                    iconurl = "https://raw.githubusercontent.com/cometfish/hubitat_driver_bomweather/master/images/monochrome/"
-                wIcon = "${iconurl}${iconCodeStr}${icontype}.png"
-                sendEvent(name: "weatherIcon", value: wIcon, isStateChange: true)
+    if (iconurl==null || iconurl=='')
+        iconurl = "https://raw.githubusercontent.com/cometfish/hubitat_driver_bomweather/master/images/monochrome/"
+	wIcon = "${iconurl}${iconCodeStr}${icontype}.png"
+	sendEvent(name: "weatherIcon", value: wIcon, isStateChange: true)
 	
 				vals = [:]
-                vals.weatherIcon = device.currentValue("weatherIcon")
-                vals.weather = device.currentValue("weather")
-                vals.forecastHigh=device.currentValue("forecastHigh")
-                vals.temperature=device.currentValue("temperature")
-                vals.apparent_temperature=device.currentValue("apparent_temperature")
-                vals.windDirection = device.currentValue("windDirection")
-                vals.windSpeed = device.currentValue("windSpeed")
+	vals.weatherIcon = device.currentValue("weatherIcon")
+	vals.weather = device.currentValue("weather")
+	vals.forecastHigh=device.currentValue("forecastHigh")
+	vals.temperature=device.currentValue("temperature")
+	vals.apparent_temperature=device.currentValue("apparent_temperature")
+	vals.windDirection = device.currentValue("windDirection")
+	vals.windSpeed = device.currentValue("windSpeed")
 				updateTileWithVals(vals) 
 			}
 		}
@@ -205,13 +206,13 @@ def refresh() {
 				sendEvent(name: "windDirection", value: deg, unit:"°", isStateChange: true)
 				sendEvent(name: "windSpeed", value: resp.data.observations.data[0].wind_spd_kmh,unit: "kmh", isStateChange: true)
 				vals = [:]
-                vals.weatherIcon = device.currentValue("weatherIcon")
-                vals.weather = device.currentValue("weather")
-                vals.forecastHigh=device.currentValue("forecastHigh")
-                vals.temperature=resp.data.observations.data[0].air_temp
-                vals.apparent_temperature=resp.data.observations.data[0].apparent_t
-                vals.windDirection = deg
-                vals.windSpeed = resp.data.observations.data[0].wind_spd_kmh
+	vals.weatherIcon = device.currentValue("weatherIcon")
+	vals.weather = device.currentValue("weather")
+	vals.forecastHigh=device.currentValue("forecastHigh")
+	vals.temperature=resp.data.observations.data[0].air_temp
+	vals.apparent_temperature=resp.data.observations.data[0].apparent_t
+	vals.windDirection = deg
+	vals.windSpeed = resp.data.observations.data[0].wind_spd_kmh
 				updateTileWithVals(vals)
 				
             } else {
@@ -256,19 +257,26 @@ def parse(String description) {
 		sendMsg("SIZE anon/gen/fwo/"+settings.forecastidv+".xml")
 	} else if (description.substring(0,4)=="213 ")
 	{
-		state.ftpstatus = "downloadingfile"
+		state.ftpstatus = "connectingforfile"
 		if (logEnable) log.debug("status: ${state.ftpstatus}")
 		state.filesize = description.split(" ")[1].toInteger()
 		file = new StringBuilder(state.filesize)
 		def children = getChildDevices()
+		ftpChildFailed = false;
 		children.each {child->
 			child.setLogEnable(logEnable)
 			child.setIP(state.ipaddr)
 			child.setPort(state.port)
 			child.connect()
 		}
-		sendMsg("RETR anon/gen/fwo/"+settings.forecastidv+".xml")
-		//(second session gets file)
+		if (ftpChildFailed)
+		{
+			resetFTPStatus()
+		} else {
+			state.ftpstatus = "downloadingfile"
+			sendMsg("RETR anon/gen/fwo/"+settings.forecastidv+".xml")
+			//(second session gets file)
+		}
 	} else if (description.substring(0,4)=="226 ")
 	{
 		//226 Transfer complete
@@ -301,7 +309,10 @@ def childParse(String description) {
 		log.warn("unexpected msg from child: ${description}")	
 	}
 }
-
+def ftpChildFailed() {
+	//why not just resetFTPStatus() here? because the outer method parse() is still running, and overwrites the state variable with whatever it's already cached once it continues
+	ftpChildFailed = true
+}
 private readXMLData() {
 	state.ftpstatus = "parsingxml"
 	if (logEnable) log.debug("status: ${state.ftpstatus}")
@@ -360,7 +371,9 @@ private readXMLData() {
 
 def resetFTPStatus() {
     telnetClose()
-    state.filesize = 0
+	state.filesize = 0
+	state.ipaddr = ""
+	state.port = 0
 	file = new StringBuilder()
     state.ftpstatus = "idle"
 }

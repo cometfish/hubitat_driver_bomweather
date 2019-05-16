@@ -24,7 +24,13 @@ preferences {
 
 void connect() { 
     if (state.logEnable) log.debug "$device connecting"
-    telnetConnect([termChars:[10]], state.ip, state.port.toInteger(), "", "")
+	try {
+    	telnetConnect([termChars:[10]], state.ip, state.port.toInteger(), "", "")
+	} catch (Exception e) {
+		//could not connect - tell parent to reset, otherwise we're stuck waiting for file indefinitely
+		log.error "Connection to download file failed: ${e.message}"
+		parent.ftpChildFailed();
+	}
 }
 void setIP(ipaddr) {
 	if (state.logEnable) log.debug "set IP to $ipaddr"
