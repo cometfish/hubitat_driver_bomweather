@@ -361,7 +361,7 @@ private readXMLData() {
 	vals = [:]
 	vals.weatherIcon = wIcon
 	vals.weather = w
-	vals.forecastHigh=fHigh
+	vals.forecastHigh=fhigh
 	vals.temperature=device.currentValue("temperature")
 	vals.apparent_temperature=device.currentValue("apparent_temperature")
 	vals.windDirection = device.currentValue("windDirection")
