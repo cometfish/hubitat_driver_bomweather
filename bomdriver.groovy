@@ -139,7 +139,7 @@ def refresh() {
 				
 			    iconurl = settings.iconcustomurl
     if (iconurl==null || iconurl=='')
-        iconurl = "https://raw.githubusercontent.com/cometfish/hubitat_driver_bomweather/master/images/monochrome/"
+        iconurl = "https://raw.githubusercontent.com/cometfish/hubitat_driver_bomweather/master/images/white/"
 	wIcon = "${iconurl}${iconCodeStr}${icontype}.png"
 	sendEvent(name: "weatherIcon", value: wIcon, isStateChange: true)
 	
@@ -353,7 +353,7 @@ private readXMLData() {
 	state.icontype = icontype
     iconurl = settings.iconcustomurl
     if (iconurl==null || iconurl=='')
-        iconurl = "https://raw.githubusercontent.com/cometfish/hubitat_driver_bomweather/master/images/monochrome/"
+        iconurl = "https://raw.githubusercontent.com/cometfish/hubitat_driver_bomweather/master/images/white/"
 	wIcon = "${iconurl}${iconCodeStr}${icontype}.png"
 	sendEvent(name: "weatherIcon", value: wIcon, isStateChange: true)
 	sendEvent(name: "tile", value: "<br /><img src=\"" + wIcon + "\" /><br />" + w, isStateChange: true)
