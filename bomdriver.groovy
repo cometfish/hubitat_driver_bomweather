@@ -392,6 +392,9 @@ def updateTile() {
 	
 }
 def updateTileWithVals(vals) {
+    windArrow = ""
+    if (vals.windSpeed!=0)
+        windArrow = """<div style="transform:rotate(${vals.windDirection}deg);display:inline-block;font-weight:bold;">&uarr;</div> """
 	sendEvent(name: "tile", value: """
 <style>.wfc {display:inline-block;padding:0 8px;font-size:12px;}
 span.v {font-size:20px;}
@@ -409,7 +412,7 @@ Currently
 </div><div class="wfc"><span class="v">${vals.apparent_temperature}&deg;C</span><br>
 Feels like
 </div><div class="wfc">
-<span class="v"><div style="transform:rotate(${vals.windDirection}deg);display:inline-block;font-weight:bold;">&uarr;</div> ${vals.windSpeed}km/h</span><br>
+<span class="v">${windArrow}${vals.windSpeed}km/h</span><br>
 Wind
 </div>
 </div>""", isStateChange: true)
