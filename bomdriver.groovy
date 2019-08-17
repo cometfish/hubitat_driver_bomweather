@@ -341,7 +341,9 @@ private readXMLData() {
 	sendEvent(name: "forecastLow", value: el.text(), unit: "°C", isStateChange: true)
 	el = today.element.find{it.@type == 'air_temperature_maximum'}
 	fhigh=el.text()
-	sendEvent(name: "forecastHigh", value: fhigh, unit: "°C", isStateChange: true)
+    //after it hits the high, BoM doesn't return the high anymore
+    if (fhigh!=null && fhigh!='' )
+	    sendEvent(name: "forecastHigh", value: fhigh, unit: "°C", isStateChange: true)
 	
 	el = today.element.find{it.@type == 'forecast_icon_code'}
 	iconCodeStr = el.text()
@@ -361,7 +363,11 @@ private readXMLData() {
 	vals = [:]
 	vals.weatherIcon = wIcon
 	vals.weather = w
-	vals.forecastHigh=fhigh
+    if (fhigh!=null && fhigh!='')
+	    vals.forecastHigh=fhigh
+    else
+        vals.forecastHigh = device.currentValue("forecastHigh")
+    
 	vals.temperature=device.currentValue("temperature")
 	vals.apparent_temperature=device.currentValue("apparent_temperature")
 	vals.windDirection = device.currentValue("windDirection")
