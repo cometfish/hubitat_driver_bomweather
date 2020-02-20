@@ -5,7 +5,7 @@
  * 
  */
 metadata {
-    definition(name: "BoM Weather", namespace: "community", author: "cometfish") {
+    definition(name: "BoM Weather", namespace: "community", author: "cometfish", importUrl: "https://raw.githubusercontent.com/cometfish/hubitat_driver_bomweather/master/bomdriver.groovy") {
 	    capability "Sensor"
         capability "TemperatureMeasurement"
 		capability "Relative Humidity Measurement"

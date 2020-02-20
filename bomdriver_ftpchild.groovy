@@ -5,7 +5,7 @@
  *
  */
 metadata {
-    definition (name: "BoM Weather Forecasts FTP component", namespace: "community", author: "cometfish") {
+    definition (name: "BoM Weather Forecasts FTP component", namespace: "community", author: "cometfish", importUrl: "https://raw.githubusercontent.com/cometfish/hubitat_driver_bomweather/master/bomdriver_ftpchild.groovy") {
         capability "Telnet"
 	
         attribute "ip", "string"
