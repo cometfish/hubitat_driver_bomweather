@@ -117,7 +117,10 @@ def refresh() {
 	
 	//forecast (do these first, because it will take longer to load)
 	try {
-		nextupdate = Date.parseToStringDate(device.currentValue("forecastnextupdate"))
+        fnextupdate = device.currentValue("forecastnextupdate");
+        nextupdate = null;
+        if (fnextupdate!=null)
+		    nextupdate = Date.parseToStringDate(fnextupdate)
 
 		if (nextupdate == null || nextupdate<(new Date())) {
             if (state.ftpstatus!="idle")
@@ -155,7 +158,8 @@ def refresh() {
 			}
 		}
 	} catch (Exception e) {
-		log.warn "Refresh call forecasts failed: ${e.message}"
+		log.warn "Refresh call forecasts failed:"
+        log.warn e
 	}
 
     try {
