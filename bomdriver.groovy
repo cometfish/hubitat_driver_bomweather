@@ -310,7 +310,7 @@ def childParse(String description) {
 			readXMLData()
 		}
 	} else {
-		log.warn("unexpected msg from child: ${description}")	
+		log.warn("unexpected msg from child. parent state: ${state.ftpstatus} msg: ${description}")	
 	}
 }
 def ftpChildFailed() {
