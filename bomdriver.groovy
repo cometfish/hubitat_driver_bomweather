@@ -43,10 +43,10 @@ metadata {
 
 preferences {
     section("URIs") {
-		input "idv", "text", title: "Observation IDV number (eg. IDV60901)", required: true
+		input "idv", "text", title: "Observation ID number (eg. IDV60901)", required: true
         input "wmo", "text", title: "Observation WMO number for your local weather station (eg. 95936)", required: true
         
-		input "forecastidv", "text", title: "Forecast Precis IDV number (eg. IDV10753)", required: true
+		input "forecastidv", "text", title: "Forecast Precis ID number (eg. IDV10753)", required: true
         input "aac", "text", title: "Forecast Precis AAC code for your local weather station (eg. VIC_PT042)", required: true
         
         input "iconcustomurl", "text", title: "Icon custom url (Leave blank for default. Include trailing slash)", required: false
